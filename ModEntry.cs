@@ -26,6 +26,7 @@ namespace SB_BQMS
         public override void Entry(IModHelper helper)
         {
             SaveEvents.AfterLoad += initializeMod;
+            SaveEvents.AfterReturnToTitle += ResetMod;
             GameEvents.UpdateTick += ModUpdate;
             allSeedMakers = new SerializableDictionary<StardewValley.Object, allSeedMakerValueContainer>();
             isInitialized = false;
@@ -41,6 +42,11 @@ namespace SB_BQMS
         {
             previousLocation = Game1.player.currentLocation;
             isInitialized = true;
+        }
+
+        private void ResetMod(object sender, EventArgs e)
+        {
+            isInitialized = false;
         }
 
         private void ModUpdate(object sender, EventArgs e)
