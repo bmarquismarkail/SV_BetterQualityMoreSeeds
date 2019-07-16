@@ -82,43 +82,50 @@ namespace BetterQualityMoreSeeds
         {
             if (isInitialized)
             {
-                List<SObject> seedMakers = allSeedMakers.Keys.ToList();
-                foreach (SObject seedMaker in seedMakers)
+                foreach (SObject seedMaker in allSeedMakers.Keys.ToArray())
                 {
-                    if (seedMaker.heldObject?.Value == null && allSeedMakers[seedMaker].hasBeenChecked)
-                    {
-                        allSeedMakers[seedMaker].droppedObject = null;
-                        allSeedMakers[seedMaker].hasBeenChecked = false;
-                    }
-                    if (seedMaker.heldObject?.Value != null && allSeedMakers[seedMaker].hasBeenChecked == false && allSeedMakers[seedMaker].droppedObject == null)
-                    {
-                        if (hasAutomate)
-                        {
-                            // This should invoke checkChests, which will scan the seed maker for adjacent chests,
-                            // Then checks if those chests inventory decreased.
-                            SObject droppedChestObject = checkChests(seedMaker);
-                            if (droppedChestObject != null)
-                            {
-                                allSeedMakers[seedMaker].droppedObject = droppedChestObject;
-                                seedMaker.heldObject.Value.addToStack(allSeedMakers[seedMaker].droppedObject.Quality == 4 ? allSeedMakers[seedMaker].droppedObject.Quality - 1 : allSeedMakers[seedMaker].droppedObject.Quality);
-                                allSeedMakers[seedMaker].hasBeenChecked = true;
-                                continue;
-                            }
-                        }
+                    AllSeedMakerValueContainer container = allSeedMakers[seedMaker];
 
-                        //  Checks if the Farmer is in the same location as the seed maker
-                        //  This will save up cpu time for the ones that are not on location
-                        if (previousHeldItem != null && Game1.player.currentLocation == allSeedMakers[seedMaker].location)
+                    if (seedMaker.heldObject?.Value == null && container.hasBeenChecked)
+                    {
+                        container.droppedObject = null;
+                        container.hasBeenChecked = false;
+                    }
+                    else if (seedMaker.heldObject?.Value != null && !container.hasBeenChecked && container.droppedObject == null)
+                    {
+                        SObject input = this.GetLastInput(seedMaker);
+                        if (input != null)
                         {
-                            allSeedMakers[seedMaker].droppedObject = previousHeldItem;
-                            seedMaker.heldObject.Value.addToStack(allSeedMakers[seedMaker].droppedObject.Quality == 4 ? allSeedMakers[seedMaker].droppedObject.Quality - 1 : allSeedMakers[seedMaker].droppedObject.Quality);
-                            allSeedMakers[seedMaker].hasBeenChecked = true;
-                            continue;
+                            container.droppedObject = input;
+                            seedMaker.heldObject.Value.addToStack(input.Quality == 4 ? input.Quality - 1 : input.Quality);
+                            container.hasBeenChecked = true;
                         }
                     }
                 }
+
                 previousHeldItem = Game1.player.ActiveObject;
             }
+        }
+
+        /// <summary>Get the last input received for a seed maker.</summary>
+        /// <param name="seedMaker">The seed maker to check.</param>
+        private SObject GetLastInput(SObject seedMaker)
+        {
+            if (hasAutomate)
+            {
+                // This should invoke checkChests, which will scan the seed maker for adjacent chests,
+                // Then checks if those chests inventory decreased.
+                SObject input = checkChests(seedMaker);
+                if (input != null)
+                    return input;
+            }
+
+            //  Checks if the Farmer is in the same location as the seed maker
+            //  This will save up cpu time for the ones that are not on location
+            if (previousHeldItem != null && Game1.player.currentLocation == allSeedMakers[seedMaker].location)
+                return previousHeldItem;
+
+            return null;
         }
 
         //  For Automate  We now need to get all seed makers available.
