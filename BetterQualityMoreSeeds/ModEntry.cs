@@ -100,17 +100,18 @@ namespace BetterQualityMoreSeeds
                             if (droppedChestObject != null)
                             {
                                 allSeedMakers[seedMaker].droppedObject = droppedChestObject;
-                                seedMaker.addToStack(allSeedMakers[seedMaker].droppedObject.Quality == 4 ? allSeedMakers[seedMaker].droppedObject.Quality - 1 : allSeedMakers[seedMaker].droppedObject.Quality);
+                                seedMaker.heldObject.Value.addToStack(allSeedMakers[seedMaker].droppedObject.Quality == 4 ? allSeedMakers[seedMaker].droppedObject.Quality - 1 : allSeedMakers[seedMaker].droppedObject.Quality);
                                 allSeedMakers[seedMaker].hasBeenChecked = true;
                                 continue;
                             }
                         }
+
                         //  Checks if the Farmer is in the same location as the seed maker
                         //  This will save up cpu time for the ones that are not on location
                         if (previousHeldItem != null && Game1.player.currentLocation == allSeedMakers[seedMaker].location)
                         {
                             allSeedMakers[seedMaker].droppedObject = previousHeldItem;
-                            seedMaker.addToStack(allSeedMakers[seedMaker].droppedObject.Quality == 4 ? allSeedMakers[seedMaker].droppedObject.Quality - 1 : allSeedMakers[seedMaker].droppedObject.Quality);
+                            seedMaker.heldObject.Value.addToStack(allSeedMakers[seedMaker].droppedObject.Quality == 4 ? allSeedMakers[seedMaker].droppedObject.Quality - 1 : allSeedMakers[seedMaker].droppedObject.Quality);
                             allSeedMakers[seedMaker].hasBeenChecked = true;
                             continue;
                         }
