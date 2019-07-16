@@ -85,21 +85,22 @@ namespace BetterQualityMoreSeeds
                 foreach (SObject seedMaker in allSeedMakers.Keys.ToArray())
                 {
                     AllSeedMakerValueContainer container = allSeedMakers[seedMaker];
+                    SObject heldObj = seedMaker.heldObject?.Value;
 
-                    if (seedMaker.heldObject?.Value == null && container.hasBeenChecked)
+                    if (heldObj == null && container.hasBeenChecked)
                     {
                         container.droppedObject = null;
                         container.hasBeenChecked = false;
                     }
-                    else if (seedMaker.heldObject?.Value != null && !container.hasBeenChecked && container.droppedObject == null)
+                    else if (heldObj != null && !container.hasBeenChecked && container.droppedObject == null)
                     {
                         SObject input = this.GetLastInput(seedMaker);
                         if (input != null)
                         {
                             container.droppedObject = input;
-                            seedMaker.heldObject.Value.addToStack(input.Quality == 4 ? input.Quality - 1 : input.Quality);
-                            container.hasBeenChecked = true;
+                            heldObj.addToStack(input.Quality == 4 ? input.Quality - 1 : input.Quality);
                         }
+                        container.hasBeenChecked = true;
                     }
                 }
 
