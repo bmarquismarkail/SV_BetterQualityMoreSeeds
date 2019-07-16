@@ -1,90 +1,65 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Xna.Framework;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
-using System.Collections.Generic;
-using System.Linq;
-using StardewValley.Objects;
 using StardewValley.Network;
+using StardewValley.Objects;
+using SObject = StardewValley.Object;
 
-namespace SB_BQMS
+namespace BetterQualityMoreSeeds
 {
-
     /// <summary>The mod entry point.</summary>
     public class ModEntry : Mod
     {
-        Dictionary<StardewValley.Object, AllSeedMakerValueContainer> allSeedMakers;
-        Dictionary<StardewValley.Object, AllChestsValueContainer> allChests;
+        private Dictionary<SObject, AllSeedMakerValueContainer> allSeedMakers;
+        private Dictionary<SObject, AllChestsValueContainer> allChests;
 
-        StardewValley.Object previousHeldItem;
+        private SObject previousHeldItem;
 
-        GameLocation previousLocation;
-        bool isInitialized;
-        bool hasAutomate;
+        private bool isInitialized;
+        private bool hasAutomate;
+
+
         /*********
         ** Public methods
         *********/
-        /// <summary>Initialise the mod.</summary>
-        /// <param name="helper">Provides methods for interacting with the mod directory, such as read/writing a config file or custom JSON files.</param>
+        /// <summary>The mod entry point, called after the mod is first loaded.</summary>
+        /// <param name="helper">Provides simplified APIs for writing mods.</param>
         public override void Entry(IModHelper helper)
         {
-            if (Helper.ModRegistry.IsLoaded("Pathoschild.Automate")) hasAutomate = true; else hasAutomate = false;
+            hasAutomate = Helper.ModRegistry.IsLoaded("Pathoschild.Automate");
 
-            Helper.Events.GameLoop.SaveLoaded += initializeMod;
-            Helper.Events.GameLoop.ReturnedToTitle += resetMod;
-            Helper.Events.GameLoop.UpdateTicked += ModUpdate;
-            Helper.Events.World.ObjectListChanged += populateSeedmakers;
-            allSeedMakers = new Dictionary<StardewValley.Object, AllSeedMakerValueContainer>();
-            if (hasAutomate) allChests = new Dictionary<StardewValley.Object, AllChestsValueContainer>();
+            Helper.Events.GameLoop.SaveLoaded += OnSaveLoaded;
+            Helper.Events.GameLoop.ReturnedToTitle += OnReturnedToTitle;
+            Helper.Events.GameLoop.UpdateTicked += OnUpdateTicked;
+            Helper.Events.World.ObjectListChanged += OnObjectListChanged;
+            allSeedMakers = new Dictionary<SObject, AllSeedMakerValueContainer>();
+            if (hasAutomate)
+                allChests = new Dictionary<SObject, AllChestsValueContainer>();
             isInitialized = false;
         }
 
-        //  For Automate  We now need to get all seed makers available.
-        //  So making this a method on its own
-        private void populateSeedmakersBase()
-        {
-            allSeedMakers.Clear();
-            if (hasAutomate) allChests.Clear();
-
-            foreach (GameLocation location in Game1.locations)
-            {
-                OverlaidDictionary allObjects = location.objects;
-                    foreach (StardewValley.Object ob in allObjects.Values)
-                {
-                    if (ob.name.Equals("Seed Maker"))
-                    {
-                        if (!allSeedMakers.ContainsKey(ob))
-                            allSeedMakers.Add(ob, new AllSeedMakerValueContainer(null, location, ob != null ? true : false));
-                    }
-                    if (hasAutomate)
-                    {
-                        if ((ob is Chest) && (ob as Chest).playerChest)
-                        {
-                            if (!allChests.ContainsKey(ob))
-                                allChests.Add(ob, new AllChestsValueContainer(null, location, false));
-                        }
-                    }
-                }
-
-            }
-            previousLocation = Game1.player.currentLocation;
-        }
-
-        private void populateSeedmakers(object sender, ObjectListChangedEventArgs e)
-        {
-            populateSeedmakersBase();
-        }
 
         /*********
         ** Private methods
         *********/
-        /// <summary>Initializes the Mod. Adds all Seed Makers in the Game
+        /// <summary>Raised after objects are added or removed in a location.</summary>
+        /// <param name="sender">The event sender.</param>
+        /// <param name="e">The event arguments.</param>
+        private void OnObjectListChanged(object sender, ObjectListChangedEventArgs e)
+        {
+            populateSeedmakersBase();
+        }
+
+        /// <summary>Raised after the player loads a save slot and the world is initialised.</summary>
         /// <param name="sender">The event sender.</param>
         /// <param name="e">The event data.</param>
-        private void initializeMod(object sender, EventArgs e)
+        private void OnSaveLoaded(object sender, SaveLoadedEventArgs e)
         {
-            previousLocation = Game1.player.currentLocation;
+            //Initialize the Mod. Add all Seed Makers in the Game.
             //TODO: Add the allSeedMakers population code here.
             //TODO: add a LocationObjectsChanged method to check if the allSeedMakers variable needs to be updated
             //Note: The Method has been designed to do this since alpha! LOL
@@ -92,66 +67,36 @@ namespace SB_BQMS
             isInitialized = true;
         }
 
-        private void resetMod(object sender, EventArgs e)
+        /// <summary>Raised after the game returns to the title screen.</summary>
+        /// <param name="sender">The event sender.</param>
+        /// <param name="e">The event data.</param>
+        private void OnReturnedToTitle(object sender, EventArgs e)
         {
             isInitialized = false;
         }
 
-        private StardewValley.Object checkChests(StardewValley.Object seedmaker)
-        {
-            OverlaidDictionary allObjectsinLocation = allSeedMakers[seedmaker].location.objects;
-            OverlaidDictionary.KeysCollection keyCollection = allObjectsinLocation.Keys;
-            foreach (Vector2 objectKey in keyCollection)
-            {
-                if (allObjectsinLocation[objectKey] is Chest && Vector2.Distance(objectKey, seedmaker.TileLocation) <= 1.0)
-                {
-                    Chest thisChest = (allObjectsinLocation[objectKey] as Chest);
-                    Netcode.NetObjectList<Item> currentItems = thisChest.items;
-                    for (int index = 0; index < currentItems.Count; index++)
-                    {
-                        if (currentItems[index] == null || currentItems[index].ParentSheetIndex == 433) continue;
-                        {
-                            Dictionary<int, string> dictionary = Game1.temporaryContent.Load<Dictionary<int, string>>("Data\\Crops");
-                            foreach (KeyValuePair<int, string> keyValuePair in dictionary)
-                            {
-                                if (Convert.ToInt32(keyValuePair.Value.Split('/')[3]) == currentItems[index].ParentSheetIndex)
-                                {
-                                    allChests[thisChest].previousItem = currentItems[index];
-                                    return currentItems[index] as StardewValley.Object;
-                                }
-                            }
-                        }
-                    }
-                    if (allChests[thisChest].previousItem != null)
-                    {
-                        Item returnItem = allChests[thisChest].previousItem;
-                        allChests[thisChest].previousItem = null;
-                        return returnItem as StardewValley.Object;
-                    }
-                }
-            }
-            return null;
-        }
-
-        private void ModUpdate(object sender, EventArgs e)
+        /// <summary>Raised after the game state is updated (≈60 times per second).</summary>
+        /// <param name="sender">The event sender.</param>
+        /// <param name="e">The event data.</param>
+        private void OnUpdateTicked(object sender, EventArgs e)
         {
             if (isInitialized)
             {
-                List<StardewValley.Object> seedMakers = allSeedMakers.Keys.ToList();
-                foreach (StardewValley.Object seedMaker in seedMakers)
+                List<SObject> seedMakers = allSeedMakers.Keys.ToList();
+                foreach (SObject seedMaker in seedMakers)
                 {
-                    if (seedMaker.heldObject == null && allSeedMakers[seedMaker].hasBeenChecked == true)
+                    if (seedMaker.heldObject?.Value == null && allSeedMakers[seedMaker].hasBeenChecked)
                     {
                         allSeedMakers[seedMaker].droppedObject = null;
                         allSeedMakers[seedMaker].hasBeenChecked = false;
                     }
-                    if (seedMaker.heldObject != null && allSeedMakers[seedMaker].hasBeenChecked == false && allSeedMakers[seedMaker].droppedObject == null)
+                    if (seedMaker.heldObject?.Value != null && allSeedMakers[seedMaker].hasBeenChecked == false && allSeedMakers[seedMaker].droppedObject == null)
                     {
                         if (hasAutomate)
                         {
                             // This should invoke checkChests, which will scan the seed maker for adjacent chests,
                             // Then checks if those chests inventory decreased.
-                            StardewValley.Object droppedChestObject = checkChests(seedMaker);
+                            SObject droppedChestObject = checkChests(seedMaker);
                             if (droppedChestObject != null)
                             {
                                 allSeedMakers[seedMaker].droppedObject = droppedChestObject;
@@ -173,6 +118,71 @@ namespace SB_BQMS
                 }
                 previousHeldItem = Game1.player.ActiveObject;
             }
+        }
+
+        //  For Automate  We now need to get all seed makers available.
+        //  So making this a method on its own
+        private void populateSeedmakersBase()
+        {
+            allSeedMakers.Clear();
+            if (hasAutomate) allChests.Clear();
+
+            foreach (GameLocation location in Game1.locations)
+            {
+                OverlaidDictionary allObjects = location.objects;
+                foreach (SObject ob in allObjects.Values)
+                {
+                    if (ob.name.Equals("Seed Maker"))
+                    {
+                        if (!allSeedMakers.ContainsKey(ob))
+                            allSeedMakers.Add(ob, new AllSeedMakerValueContainer(null, location, true));
+                    }
+                    if (hasAutomate)
+                    {
+                        if (ob is Chest chest && chest.playerChest.Value)
+                        {
+                            if (!allChests.ContainsKey(chest))
+                                allChests.Add(chest, new AllChestsValueContainer(null, location, false));
+                        }
+                    }
+                }
+            }
+        }
+
+        private SObject checkChests(SObject seedmaker)
+        {
+            OverlaidDictionary allObjectsinLocation = allSeedMakers[seedmaker].location.objects;
+            OverlaidDictionary.KeysCollection keyCollection = allObjectsinLocation.Keys;
+            foreach (Vector2 objectKey in keyCollection)
+            {
+                if (allObjectsinLocation[objectKey] is Chest && Vector2.Distance(objectKey, seedmaker.TileLocation) <= 1.0)
+                {
+                    Chest thisChest = (Chest)allObjectsinLocation[objectKey];
+                    Netcode.NetObjectList<Item> currentItems = thisChest.items;
+                    foreach (Item item in currentItems)
+                    {
+                        if (item == null || item.ParentSheetIndex == 433)
+                            continue;
+
+                        Dictionary<int, string> dictionary = Game1.temporaryContent.Load<Dictionary<int, string>>("Data\\Crops");
+                        foreach (KeyValuePair<int, string> keyValuePair in dictionary)
+                        {
+                            if (Convert.ToInt32(keyValuePair.Value.Split('/')[3]) == item.ParentSheetIndex)
+                            {
+                                allChests[thisChest].previousItem = item;
+                                return item as SObject;
+                            }
+                        }
+                    }
+                    if (allChests[thisChest].previousItem != null)
+                    {
+                        Item returnItem = allChests[thisChest].previousItem;
+                        allChests[thisChest].previousItem = null;
+                        return returnItem as SObject;
+                    }
+                }
+            }
+            return null;
         }
     }
 }
