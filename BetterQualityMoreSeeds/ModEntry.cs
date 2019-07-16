@@ -98,7 +98,7 @@ namespace BetterQualityMoreSeeds
                         if (input != null)
                         {
                             container.droppedObject = input;
-                            heldObj.addToStack(input.Quality == 4 ? input.Quality - 1 : input.Quality);
+                            heldObj.Stack = Math.Min(heldObj.maximumStackSize(), heldObj.Stack + (input.Quality == 4 ? input.Quality - 1 : input.Quality));
                         }
                         container.hasBeenChecked = true;
                     }
