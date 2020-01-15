@@ -1,28 +1,3 @@
-<<<<<<< HEAD
-﻿
-Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
-MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BetterQualityMoreSeeds", "BetterQualityMoreSeeds\BetterQualityMoreSeeds.csproj", "{268833D2-5A5F-45DB-88F3-0437A3DFA34A}"
-EndProject
-Global
-	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug|Any CPU = Debug|Any CPU
-		Release|Any CPU = Release|Any CPU
-	EndGlobalSection
-	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{268833D2-5A5F-45DB-88F3-0437A3DFA34A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{268833D2-5A5F-45DB-88F3-0437A3DFA34A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{268833D2-5A5F-45DB-88F3-0437A3DFA34A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{268833D2-5A5F-45DB-88F3-0437A3DFA34A}.Release|Any CPU.Build.0 = Release|Any CPU
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
-	EndGlobalSection
-EndGlobal
-=======
-﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29102.190
@@ -53,4 +28,3 @@ Global
 		SolutionGuid = {7924FE24-18CB-4E5F-9D01-46F62ADFA7EF}
 	EndGlobalSection
 EndGlobal
->>>>>>> cb341e8d6d0ef384e6f156d4b3044d17f306c5f7
