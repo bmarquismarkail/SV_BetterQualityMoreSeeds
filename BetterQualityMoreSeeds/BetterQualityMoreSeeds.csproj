@@ -7,6 +7,7 @@
     <TargetFramework>net452</TargetFramework>
     <Platforms>x86</Platforms>
     <PlatformTarget>x86</PlatformTarget>
+    <EnableHarmony>true</EnableHarmony>
   </PropertyGroup>
 
   <ItemGroup>
@@ -17,5 +18,4 @@
     <Folder Include="Properties\" />
     <Folder Include="Framework\" />
   </ItemGroup>
-
 </Project>
