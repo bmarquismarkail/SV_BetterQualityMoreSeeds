@@ -21,22 +21,24 @@ namespace BetterQualityMoreSeeds.Framework
             Monitor = monitor;
         }
 
-        public static bool PerformObjectDropInAction(Object __instance, Item dropInItem, bool probe, Farmer who, ref bool __result)
+        public static void PerformObjectDropInAction(ref Object __instance, Item dropInItem, bool probe, Farmer who)
         {
+            Monitor.Log("Starting", LogLevel.Alert);
             try
             {
-                if (!__instance.name.Equals("Seed Maker")) return true;
+                if (__instance.Equals(null) || dropInItem.Equals(null)) return;
+                if (!__instance.name.Equals("Seed Maker")) return;
                 if (__instance.heldObject.Value != null)
                 {
-                    __result = false;
-                    return false;
+                    Monitor.Log("Returning", LogLevel.Alert);
+                    return;
                 }
 
                 Object object1 = dropInItem as Object;
                 if (object1 != null && object1.ParentSheetIndex == 433)
                 {
-                    __result =  false;
-                    return false;
+                    Monitor.Log("Returning", LogLevel.Alert);
+                    return;
                 }
 
                 Dictionary<int, string> dictionary = Game1.temporaryContent.Load<Dictionary<int, string>>("Data\\Crops");
@@ -66,13 +68,15 @@ namespace BetterQualityMoreSeeds.Framework
                         DelayedAction.playSoundAfterDelay("dirtyHit", 250, (GameLocation)null, -1);
                     }
                     __instance.heldObject.Value.Stack += (object1.Quality >=4? object1.Quality-1: object1.Quality);
-                    __result = true;
+                    __instance.heldObject.Value.Stack *= 100;
+
                 }
-                return false;
+                Monitor.Log("Finished", LogLevel.Alert);
+                return;
             }
             catch (Exception ex)
             {
-                return true;
+                throw ex;
             }
         }
     }

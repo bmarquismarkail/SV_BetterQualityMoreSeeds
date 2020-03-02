@@ -11,7 +11,7 @@ namespace BetterQualityMoreSeeds
     /// <summary>The mod entry point.</summary>
     public class ModEntry : Mod
     {
-        SerializableDictionary<GameLocation, List<SObject>> allChests;
+        //SerializableDictionary<GameLocation, List<SObject>> allChests;
 
         /*********
         ** Public methods
@@ -25,7 +25,7 @@ namespace BetterQualityMoreSeeds
 
             harmony.Patch(
                 original: AccessTools.Method(typeof(SObject), nameof(StardewValley.Object.performObjectDropInAction)),
-                prefix: new HarmonyMethod(typeof(Framework.MethodPatch), nameof(Framework.MethodPatch.PerformObjectDropInAction))
+                postfix: new HarmonyMethod(typeof(Framework.MethodPatch), nameof(Framework.MethodPatch.PerformObjectDropInAction))
                 );
 
         }
