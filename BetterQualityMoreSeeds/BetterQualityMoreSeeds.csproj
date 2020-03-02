@@ -18,4 +18,10 @@
     <Folder Include="Properties\" />
     <Folder Include="Framework\" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Automate">
+      <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Stardew Valley\Mods\Automate\Automate.dll</HintPath>
+    </Reference>
+  </ItemGroup>
 </Project>
