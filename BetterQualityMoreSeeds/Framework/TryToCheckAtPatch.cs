@@ -41,9 +41,7 @@ namespace BetterQualityMoreSeeds.Framework
 
         internal static void TryToCheckAt_PostFix(KeyValuePair<Object, Object> __state)
         {
-            if (__state.Key == null) return;
-            Monitor.Log("Adding more seeds by quality", LogLevel.Debug);
-            __state.Key.heldObject.Value.Stack += (__state.Value.Quality >= 4 ? __state.Value.Quality - 1 : __state.Value.Quality);
+            PatchCommon.PostFix(__state, Monitor);
         }
 
         private static bool IsSeedableCrop(Item currentItem)

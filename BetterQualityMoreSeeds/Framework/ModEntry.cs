@@ -13,6 +13,8 @@ namespace BetterQualityMoreSeeds
     /// <summary>The mod entry point.</summary>
     public class ModEntry : Mod
     {
+        private bool hasAutomate;
+        private HarmonyInstance harmony;
 
         /*********
         ** Public methods
@@ -22,11 +24,15 @@ namespace BetterQualityMoreSeeds
         public override void Entry(IModHelper helper)
         {
             //Harmony instance for patching main game code
-            var harmony = HarmonyInstance.Create(this.ModManifest.UniqueID);
+            harmony = HarmonyInstance.Create(this.ModManifest.UniqueID);
 
+            helper.Events.GameLoop.GameLaunched += PatchSeedMaker;
+            helper.Events.GameLoop.GameLaunched += CheckAutomate;
+        }
 
+        private void PatchSeedMaker(object sender, GameLaunchedEventArgs e)
+        {
             TryToCheckAtPatch.Initialize(this.Monitor);
-            SeedMakerMachinePatch.Initialize(this.Monitor);
 
             harmony.Patch(
                 original: AccessTools.Method(typeof(Game1), nameof(Game1.tryToCheckAt)),
@@ -34,12 +40,26 @@ namespace BetterQualityMoreSeeds
                 postfix: new HarmonyMethod(typeof(TryToCheckAtPatch), nameof(TryToCheckAtPatch.TryToCheckAt_PostFix))
                 );
 
-            Assembly assembly = typeof(Pathoschild.Stardew.Automate.IMachine).Assembly;
-            Type SeedMakerMachine = assembly.GetType("Pathoschild.Stardew.Automate.Framework.Machines.Objects.SeedMakerMachine");
-            harmony.Patch(
-                original: AccessTools.Method(SeedMakerMachine, SeedMakerMachine.GetMethod("SetInput", System.Reflection.BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static).Name),
-                prefix: new HarmonyMethod(typeof(SeedMakerMachinePatch), nameof(SeedMakerMachinePatch.SetInputPrefix))
-                );
+        }
+
+        private void CheckAutomate(object sender, GameLaunchedEventArgs e)
+        {
+            hasAutomate = this.Helper.ModRegistry.IsLoaded("Pathoschild.Automate");
+            if (hasAutomate)
+            {
+                Monitor.Log("Getting Assembly", LogLevel.Debug);
+                object api = this.Helper.ModRegistry.GetApi("Pathoschild.Automate");
+                Assembly assembly = api.GetType().Assembly;
+                Monitor.Log("Getting a Seedmaker Type", LogLevel.Debug);
+                Type SeedMakerMachine = assembly.GetType("Pathoschild.Stardew.Automate.Framework.Machines.Objects.SeedMakerMachine");
+                SeedMakerMachinePatch.Initialize(this.Monitor, SeedMakerMachine, this.Helper.Reflection);
+
+                harmony.Patch(
+                    original: AccessTools.Method(SeedMakerMachine, SeedMakerMachine.GetMethod("SetInput", BindingFlags.Public | BindingFlags.Instance ).Name),
+                    prefix: new HarmonyMethod(typeof(SeedMakerMachinePatch), nameof(SeedMakerMachinePatch.SetInputPrefix)),
+                    postfix: new HarmonyMethod(typeof(SeedMakerMachinePatch), nameof(SeedMakerMachinePatch.SetInputPostfix))
+                    );
+            }
         }
 
 
