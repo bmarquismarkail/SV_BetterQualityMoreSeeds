@@ -31,6 +31,7 @@ namespace BetterQualityMoreSeeds.Framework
 
             Object nearestSeedMaker = CheckForNearbySeedMakers(Game1.player.currentLocation, new Location((int)grabTile.X, (int)grabTile.Y), Game1.viewport, who);
             if ( nearestSeedMaker == null) return true;
+            if (nearestSeedMaker.heldObject.Value != null ) return true;
 
             // Now just save the farmer's current item and the seedmaker that will get it and allow the game (or other mods) to perform its magic
 
